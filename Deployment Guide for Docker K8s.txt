@@ -1,0 +1,87 @@
+SYSCOM HR Docker Environment Deployment
+
+0. Install package
+
+   Use "root" to deploy it.
+   # apt-get update
+   # apt-get install net-tools
+   # apt-get install vim 
+   # apt-get install openssh-server
+   # apt-get install apt-transport-https curl -y
+
+1. Setting hostname
+
+   Ensure that all your nodes have a unique host name.
+   In master:
+   # hostnamectl set-hostname master
+
+   In Worker:
+   # hostnamectl set-hostname worker
+
+2. Install Docker
+
+   The first step is to install docker on every node. This includes both, master and slave nodes. 
+   Execute the following linux command to install docker on all your Kubernetes nodes:
+   # apt-get install -y docker.io
+
+   Once the Docker is installed ensure that it is enabled to start after reboot:
+   # systemctl enable docker
+   # systemclt start docker
+
+   Checking docker service and version:
+   # systemctl status docker
+   # docker version
+
+3. Install Kubernetes
+
+   At this stage we are ready to install Kubernetes. Once again we need to install Kubernetes on all nodes. 
+   Execute the below command on " all nodes (master & slave) " to install Kubernetes.
+
+   Add Kubernetes package repository key using the following command:
+   # curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+   # apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+   # swapoff -a
+   # apt-get install kubeadm -y
+
+   Checking kubeadm version:
+   # kubeadm version
+
+4. Initialize Kubernetes master Server
+
+   Now we are ready to initialize the Kubernetes master node. 
+   To do so execute the following linux command on your "master node".
+   # kubeadm init --pod-network-cidr=10.244.0.0/16
+
+   (pasta pic for initialized successfully)
+  
+   kubeadm join 192.168.8.111:6443 --token oumewi.wrjn3ra3qn4rtczt \
+       --discovery-token-ca-cert-hash sha256:5b64b28a5918cb46c463c7fd19866af8d435e19df9fb2c71a6243548b35a8c4e 
+
+   # mkdir -p $HOME/.kube
+   # cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+   # chown $(id -u):$(id -g) $HOME/.kube/config
+
+5. Deploy a pod network
+
+   The pod network is used for communication between nodes within the Kubernetes cluster. 
+   For this we will use the Flannel pod network.
+
+   # kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+   # kubectl get pods --all-namespaces
+   # kubectl get nodes
+
+6. Join Kubernetes Cluster
+
+   All should be now ready for our node(s) to join Kubernetes cluster. 
+   Use the kubeadm join command retrieved earlier from the Kubernetes master node 
+   initialization output to join your Kubernetes cluster.
+
+   # kubeadm join 192.168.8.111:6443 --token oumewi.wrjn3ra3qn4rtczt \
+       --discovery-token-ca-cert-hash sha256:5b64b28a5918cb46c463c7fd19866af8d435e19df9fb2c71a6243548b35a8c4e
+
+   In master: 
+   # kubectl get nodes
+
+   
+
+
